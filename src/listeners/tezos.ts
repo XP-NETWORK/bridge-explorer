@@ -79,7 +79,7 @@ export function tezosEventListener(
 
   return {
     listen: async () => {
-      console.log("listen tezos");
+      // console.log("listen tezos");
 
       /*const client = new RpcClient(config.tezos.node, 'NetXjD3HPJJjmcd');
       const block = await client.getBlock();
@@ -114,19 +114,34 @@ export function tezosEventListener(
 
               const tchainNonce = param1.args![0] as MichelsonV1ExpressionBase;
               const fa2Address = param1.args![1] as MichelsonV1ExpressionBase;
-              console.log(fa2Address);
+              // console.log(fa2Address);
               const to = param2.args![0] as MichelsonV1ExpressionBase;
               const tokenId = param2.args![1] as MichelsonV1ExpressionBase;
               const actionId = getActionId(data.metadata.operation_result);
               //@ts-ignore
-              console.log(tokenId?.args[1].int!);
-              console.log(tchainNonce);
+              // console.log(tokenId?.args[1].int!);
+              // console.log(tchainNonce);
+
+              try {
+                const ScrapedTokenId: Promise<string> = (async () => {
+                  const res = await axios.get(
+                    'https://staging.api.tzkt.io/v1/operations/transactions',
+                    { params: { sender: "KT1WKtpe58XPCqNQmPmVUq6CZkPYRms5oLvu" } }
+                  );
+                  const mappedHash = res.data.filter((i: any) => i.hash && i.hash === data.hash);
+                  const array = mappedHash[0].parameter.value[0].list ?
+                    mappedHash[0].parameter.value[0].list : mappedHash[0].parameter.value[0].txs;
+                  return array[0].token_id;
+                })()
+              } catch (err) {
+                console.log(err)
+              }
 
               const eventObj: IEvent = {
                 actionId: actionId.toString(),
                 chainName,
                 //@ts-ignore
-                tokenId: tokenId.args[1].int.toString(),
+                tokenId: tokenId.args[1].int.toString() || tokenId || ScrapedTokenId,
                 fromChain: chainNonce,
                 toChain: tchainNonce.int,
                 fromChainName: chainNonceToName(chainNonce),
@@ -148,44 +163,44 @@ export function tezosEventListener(
                 let [url, exchangeRate]:
                   | PromiseSettledResult<string>[]
                   | string[] = await Promise.allSettled([
-                  (async () =>
-                    fa2Address?.string &&
-                    eventObj.tokenId &&
-                    (await getUriFa2(fa2Address.string, eventObj.tokenId)))(),
-                  (async () => {
-                    const res = await axios(
-                      `https://api.coingecko.com/api/v3/simple/price?ids=${chainId}&vs_currencies=usd`
-                    );
-                    return res.data[chainId].usd;
-                  })(),
-                ]);
+                    (async () =>
+                      fa2Address?.string &&
+                      eventObj.tokenId &&
+                      (await getUriFa2(fa2Address.string, eventObj.tokenId)))(),
+                    (async () => {
+                      const res = await axios(
+                        `https://api.coingecko.com/api/v3/simple/price?ids=${chainId}&vs_currencies=usd`
+                      );
+                      return res.data[chainId].usd;
+                    })(),
+                  ]);
                 eventObj.nftUri = url.status === "fulfilled" ? url.value : "";
                 eventObj.dollarFees =
                   exchangeRate.status === "fulfilled"
                     ? new BigNumber(ethers.utils.formatEther(eventObj.txFees))
-                        .multipliedBy(exchangeRate.value)
-                        .toString()
+                      .multipliedBy(exchangeRate.value)
+                      .toString()
                     : "";
               } catch (e) {
                 console.log(e);
               }
-              console.log(eventObj);
+              // console.log(eventObj);
               Promise.all([
                 (async () => {
                   return await createEventRepo(em.fork()).createEvent(eventObj);
                 })(),
                 (async () => await createEventRepo(em.fork()).saveWallet(eventObj.senderAddress, eventObj.targetAddress!))(),
               ]).then(([doc]) => {
-                console.log("end");
+                // console.log("end");
                 clientAppSocket.emit("incomingEvent", doc);
               });
               break;
             }
 
             case "withdraw_nft": {
-              console.log(
-                util.inspect(data, false, null, true /* enable colors */)
-              );
+              // console.log(
+              //   util.inspect(data, false, null, true /* enable colors */)
+              // );
               const params = data.parameters
                 .value as MichelsonV1ExpressionExtended;
               const to = params.args![0] as MichelsonV1ExpressionBase;
@@ -223,21 +238,21 @@ export function tezosEventListener(
                 let [url, exchangeRate]:
                   | PromiseSettledResult<string>[]
                   | string[] = await Promise.allSettled([
-                  (async () =>
-                    await getUriFa2(config.tezos.xpnft, tokenId.int!))(),
-                  (async () => {
-                    const res = await axios(
-                      `https://api.coingecko.com/api/v3/simple/price?ids=${chainId}&vs_currencies=usd`
-                    );
-                    return res.data[chainId].usd;
-                  })(),
-                ]);
+                    (async () =>
+                      await getUriFa2(config.tezos.xpnft, tokenId.int!))(),
+                    (async () => {
+                      const res = await axios(
+                        `https://api.coingecko.com/api/v3/simple/price?ids=${chainId}&vs_currencies=usd`
+                      );
+                      return res.data[chainId].usd;
+                    })(),
+                  ]);
                 eventObj.nftUri = url.status === "fulfilled" ? url.value : "";
                 eventObj.dollarFees =
                   exchangeRate.status === "fulfilled"
                     ? new BigNumber(ethers.utils.formatEther(eventObj.txFees))
-                        .multipliedBy(exchangeRate.value)
-                        .toString()
+                      .multipliedBy(exchangeRate.value)
+                      .toString()
                     : "";
               } catch (e) {
                 console.log(e);
@@ -267,15 +282,15 @@ export function tezosEventListener(
           hash: string
         ) => {
           if (!fromChain || fromChain.toString() !== config.tezos.nonce) return;
-          console.log(
-            {
-              toChain,
-              fromChain,
-              action_id,
-              hash,
-            },
-            "tezos:tx_executed_event"
-          );
+          // console.log(
+          //   {
+          //     toChain,
+          //     fromChain,
+          //     action_id,
+          //     hash,
+          //   },
+          //   "tezos:tx_executed_event"
+          // );
 
           try {
             const updated = await createEventRepo(em.fork()).updateEvent(
@@ -285,7 +300,7 @@ export function tezosEventListener(
               hash
             );
             if (!updated) return;
-            console.log(updated, "updated");
+            // console.log(updated, "updated");
 
             if (updated.toChain === config.algorand.nonce) {
               if (updated.toHash?.split("-").length! > 2) {

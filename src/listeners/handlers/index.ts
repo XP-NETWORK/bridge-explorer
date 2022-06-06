@@ -8,7 +8,7 @@ import { BridgeEvent, IEvent } from "../../entities/IEvent";
 import { chainNonceToName } from "../../config";
 import { clientAppSocket } from "../../index";
 import cron from 'node-cron'
-import { currency , txExplorers } from "../../config";
+import { currency, txExplorers } from "../../config";
 import { IDatabaseDriver, Connection, EntityManager } from "@mikro-orm/core";
 
 import createEventRepo from "../../db/repo";
@@ -26,7 +26,7 @@ export interface IEventhandler {
   txFees: string;
   uri: string;
   contract: string;
-  dollarFees?: string;
+  dollarFees?: string | Promise<string>;
   createdAt?: Date
 }
 
@@ -39,13 +39,13 @@ const evmNonces = config.web3.map((c) => c.nonce);
 
 const getExchageRate = async () => (await axios('https://xp-exchange-rates.herokuapp.com/exchange/batch_data')).data;
 
-export const calcDollarFees = (txFees: any, exchangeRate: number, fromChain:string) => {
+export const calcDollarFees = (txFees: any, exchangeRate: number, fromChain: string) => {
   if (fromChain === config.algorand.nonce) {
-      return String(+txFees * exchangeRate)
+    return String(+txFees * exchangeRate)
   }
 
   if (fromChain === config.tron.nonce) {
-      return new BigNumber(txFees).shiftedBy(-6).multipliedBy(exchangeRate.toFixed(2)).toString()
+    return new BigNumber(txFees).shiftedBy(-6).multipliedBy(exchangeRate.toFixed(2)).toString()
   }
 
   return new BigNumber(ethers.utils.formatEther(txFees?.toString() || ""))
@@ -63,8 +63,7 @@ let exchangeRates: any = {};
 cron.schedule('*/3 * * * *', async () => {
   exchangeRates = (await getExchageRate())
 })
-
-
+//whereTowork
 export const executedEventHandler = (
   em: EntityManager<IDatabaseDriver<Connection>>,
   chain: string
@@ -80,15 +79,19 @@ export const executedEventHandler = (
   hash: string;
 }) => {
     if (!fromChain || chain !== String(fromChain)) return;
-    console.log(
-      {
-        fromChain,
-        toChain,
-        action_id,
-        hash,
-      },
-      "tx_executed_event"
-    );
+    // console.log(
+    //   {
+    //     fromChain,
+    //     toChain,
+    //     action_id,
+    //     hash,
+    //   },
+    //   "tx_executed_event"
+    // );
+    const rpc = getChain(String(toChain))
+    const provider = new ethers.providers.JsonRpcProvider(rpc?.node);
+    const txReceipt = await provider?.getTransactionReceipt(hash);
+    const statusFlag = txReceipt && txReceipt.blockNumber ? true : false;
 
     const actionIdOffset = getChain(String(fromChain))?.actionIdOffset || 0;
 
@@ -97,10 +100,11 @@ export const executedEventHandler = (
         String(Number(action_id) - actionIdOffset),
         toChain.toString(),
         fromChain.toString(),
-        hash
+        hash,
+        statusFlag
       );
       if (!updated) return;
-      console.log(updated, "updated");
+      // console.log(updated, "updated");
 
       if (
         updated.status === "Completed" &&
@@ -111,8 +115,8 @@ export const executedEventHandler = (
       }
 
       if (updated.toChain === config.algorand.nonce) {
-        console.log("algo update");
-        console.log(updated.toHash?.split("-"));
+        // console.log("algo update");
+        // console.log(updated.toHash?.split("-"));
         if (updated.toHash?.split("-").length! > 2) {
           clientAppSocket.emit("updateEvent", updated);
         }
@@ -138,10 +142,8 @@ export const eventHandler = (em: EntityManager<IDatabaseDriver<Connection>>,) =>
   uri,
   contract,
   createdAt
-}: IEventhandler, 
-options?: HanderOptions ) => {
-
-
+}: IEventhandler,
+  options?: HanderOptions) => {
 
   const event: IEvent = {
     chainName: chainNonceToName(from),
@@ -160,7 +162,7 @@ options?: HanderOptions ) => {
     nftUri: uri,
     contract,
     dollarFees: exchangeRates ? calcDollarFees(txFees, exchangeRates[currency[from]], from) : '',
-    createdAt: createdAt? createdAt : moment().utcOffset(0).toDate()
+    createdAt: createdAt ? createdAt : moment().utcOffset(0).toDate()
   };
 
 
@@ -176,7 +178,7 @@ options?: HanderOptions ) => {
   ]);
 
   if (doc && !options?.notLive) {
-    console.log(doc);
+    // console.log(doc);
 
     setTimeout(() => clientAppSocket.emit("incomingEvent", doc), Math.random() * 3 * 1000)
 
