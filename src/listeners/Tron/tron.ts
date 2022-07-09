@@ -3,8 +3,8 @@ import config, { getChain } from "../../config";
 import { io } from "socket.io-client";
 //@ts-expect-error no types, cope
 import TronWeb from "tronweb";
-import { departureEventHandler } from "../../EventHandler/departure";
-import { destinationEventHandler } from "../../EventHandler/destination";
+import { departureEventHandler } from "../../eventHandler/departure";
+import { destinationEventHandler } from "../../eventHandler/destination";
 import Bottleneck from "bottleneck";
 import { IEventhandler } from "../../Intrerfaces/IEventhandler";
 import { IDatabaseDriver, Connection, EntityManager, wrap } from "@mikro-orm/core";

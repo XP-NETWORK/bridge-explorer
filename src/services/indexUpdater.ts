@@ -7,7 +7,7 @@ import { MikroORM } from "@mikro-orm/core";
 import { explorerDB } from "../mikro-orm.config";
 import { BridgeEvent } from "../Intrerfaces/IEvent";
 import Web3 from "web3";
-import { departureEventHandler } from "../EventHandler/departure";
+import { departureEventHandler } from "../eventHandler/departure";
 
 export default class IndexUpdater {
   public static instance: IndexUpdater;

@@ -2,8 +2,8 @@ import config from "../../config";
 import { io } from "socket.io-client";
 import { EntityManager, IDatabaseDriver, Connection } from "@mikro-orm/core";
 import { BigNumber } from "bignumber.js";
-import { departureEventHandler } from "../../EventHandler/departure";
-import { destinationEventHandler } from "../../EventHandler/destination";
+import { departureEventHandler } from "../../eventHandler/departure";
+import { destinationEventHandler } from "../../eventHandler/destination";
 import { handleBridgeEvent } from "./handleBridgeEvent";
 // import { validateEvmTransaction } from "./validateTransaction"
 
