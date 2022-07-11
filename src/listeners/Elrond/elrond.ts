@@ -115,7 +115,7 @@ export function elrondEventListener(
                                 fromChain: "2",
                                 toChain: chain_nonce?.toString(),
                                 fromChainName: chainNonceToName("2"),
-                                toChainName: chainNonceToName(nonce?.toString()) || "",
+                                toChainName: chainNonceToName(chain_nonce?.toString()) || "",
                                 fromHash,
                                 txFees: tx_fees?.toString(),
                                 type,
