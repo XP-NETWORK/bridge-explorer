@@ -34,9 +34,17 @@ interface HanderOptions {
 
 const evmChainNumbers = config.web3.map((c) => c.nonce);
 
-const getExchageRate = async () => (await axios('https://xp-exchange-rates.herokuapp.com/exchange/batch_data')).data;
+const getExchageRate = async () =>{
+  try{
+   const exchangeRate =  await axios('https://xp-exchange-rates.herokuapp.com/exchange/batch_data')
+  return exchangeRate ? exchangeRate.data : ""
+  }catch(err){
+    console.log(err)
+  }
+} 
 
 export const calcDollarFees = (txFees: any, exchangeRate: number, fromChain: string) => {
+  console.log("exchangeRate:" , exchangeRate)
   if (fromChain === config.algorand.nonce) {
     return String(+txFees * exchangeRate)
   }
