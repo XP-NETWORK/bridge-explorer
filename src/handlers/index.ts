@@ -45,6 +45,9 @@ const getExchageRate = async () =>{
 
 export const calcDollarFees = (txFees: any, exchangeRate: number, fromChain: string) => {
   console.log("exchangeRate:" , exchangeRate)
+  if(exchangeRate === undefined){
+    return "1"
+  }
   if (fromChain === config.algorand.nonce) {
     return String(+txFees * exchangeRate)
   }
