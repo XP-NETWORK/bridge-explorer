@@ -49,7 +49,7 @@ export const getCollectionName = async (fromHash: string, fromChainName: string)
                 console.log("getCollectionData Line 49", name)
                 return name[0]
             } else {
-                return "No Name"
+                return undefined
             }
         }
     } catch (err: any) {
