@@ -133,7 +133,9 @@ export function elrondEventListener(
                                 (async () => {
                                     return await createEventRepo(em.fork()).createEvent(eventObj);
                                 })(),
-                                (async () => { })(),
+                                (async () => {
+                                    return await createEventRepo(em.fork()).saveWallet(eventObj.senderAddress, eventObj.targetAddress!)
+                                  })(),
                             ])
                             if (doc) {
                                 console.log("------TELEGRAM FUNCTION-----")
