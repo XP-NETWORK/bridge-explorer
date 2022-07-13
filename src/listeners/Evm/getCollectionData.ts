@@ -41,8 +41,7 @@ export const getCollectionName = async (fromHash: string, fromChainName: string)
             const contract = Minter__factory.connect(contractAddr!, provider);
             const decoded = contract.interface.parseTransaction(res);
             const args = decoded.args
-            const address = args["erc721Contract"] || args["burner"]
-
+            const address = args["erc721Contract"] || args["burner"] || args["erc1155Contract"]
             if (address) {
                 const contractInstance = await new ethers.Contract(address, abi, provider);
                 const name = await contractInstance.functions.name();
