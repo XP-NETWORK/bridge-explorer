@@ -10,7 +10,7 @@ export const currency: any = {
   "20": "IOTX",
   "16": "FUSE",
   "6": "AVAX",
-  "21": "AETH",
+  "21": "ETH",
   "7": "MATIC",
   "5": "ETH",
   "8": "FTM",
