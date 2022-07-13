@@ -17,7 +17,7 @@ export const getContractAddress = async (fromHash: string, fromChainName: string
             const contract = Minter__factory.connect(contractAddr!, provider);
             const decoded = contract.interface.parseTransaction(res);
             const args = decoded.args;
-            const address = args["erc721Contract"] || args["burner"] || "not found"
+            const address = args["erc721Contract"] || args["burner"] || args["erc1155Contract"] || undefined;
             console.log("getCollectionData Line 18", address)
             return address
         }
