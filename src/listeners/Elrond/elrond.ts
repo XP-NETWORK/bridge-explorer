@@ -50,15 +50,10 @@ export function elrondEventListener(
 
                             const action_id = bigIntFromBeElrd(
                                 Base64.toUint8Array(e.topics[1])
-                            );
-                            const tx_fees = bigIntFromBeElrd(
-                                Base64.toUint8Array(e.topics[e.topics.length - 1])
-                            );
+                ).toString();
 
                             console.log({
-                                action_id: action_id.toString(),
-                                tx_fees: tx_fees.toString(),
-                            });
+                    action_id:parseFloat(action_id) + 512 ,
 
                             console.log("e.topics", e.topics);
                             const to = Base64.atob(e.topics[3]); //
@@ -109,25 +104,7 @@ export function elrondEventListener(
                             }
 
                             const eventObj: IEvent = {
-                                actionId: action_id?.toString(),
-                                chainName: "ELROND",
-                                tokenId,
-                                fromChain: "2",
-                                toChain: chain_nonce?.toString(),
-                                fromChainName: chainNonceToName("2"),
-                                toChainName: chainNonceToName(chain_nonce?.toString()) || "",
-                                fromHash,
-                                txFees: tx_fees?.toString(),
-                                type,
-                                status: "Pending",
-                                toHash: "",
-                                senderAddress: event.sender,
-                                targetAddress: to,
-                                nftUri: uri || "",
-                                collectionName,
-                                createdAt: new Date()
-                            };
-                            console.log("transfer event: ", eventObj);
+                    actionId: (parseFloat(action_id) + 512).toString() ,
 
                             const [doc] = await Promise.all([
                                 (async () => {
