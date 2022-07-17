@@ -49,7 +49,6 @@ export function elrondEventListener(
                     return undefined;
                 }
 
-<<<<<<< HEAD
                 const action_id = bigIntFromBeElrd(
                     Base64.toUint8Array(e.topics[1])
                 ).toString();
@@ -154,92 +153,6 @@ export function elrondEventListener(
                                 await axios.get(`https://api.telegram.org/bot5524815525:AAEEoaLVnMigELR-dl01hgHzwSkbonM1Cxc/sendMessage?chat_id=-553970779&text=${getTelegramTemplate(doc)}&parse_mode=HTML`);
                             } catch (err) {
                                 console.log(err)
-=======
-                            const action_id = bigIntFromBeElrd(
-                                Base64.toUint8Array(e.topics[1])
-                ).toString();
-
-                            console.log({
-                    action_id:parseFloat(action_id) + 512 ,
-
-                            console.log("e.topics", e.topics);
-                            const to = Base64.atob(e.topics[3]); //
-                            const nftMinterContact = Base64.decode(e.topics[4]); //
-                            let uri = "";
-                            let tokenId = "";
-                            let chain_nonce = new Uint32Array(
-                                Base64.toUint8Array(e.topics[2])
-                            )[0]; //
-                            const nonce = bigIntFromBeElrd(Base64.toUint8Array(e.topics[6]));
-
-                            console.log("Elrond", {
-                                chain_nonce,
-                                nftMinterContact,
-                                nonce,
-                            });
-
-                            let type = "Unfreeze";
-
-                            switch (e.identifier) {
-                                case "withdrawNft": {
-                                    type = "Unfreeze";
-
-                                    uri = Base64.decode(e.topics[5]); //
-                                    const wrappedData = await axios.get<IERC721WrappedMeta>(uri);
-                                    tokenId = wrappedData?.data?.wrapped?.tokenId;
-
-                                    break;
-                                }
-                                case "freezeSendNft": {
-                                    type = "Transfer";
-                                    tokenId = Base64.decode(e.topics[5]);
-
-                                    const name = Base64.decode(e.topics[7]);
-                                    uri = Base64.decode(e.topics[8]);
-                                    // const [attrs, metadataUrl] = await getFrozenTokenAttrs(
-                                    //     tokenId,
-                                    //     nonce
-                                    // );
-
-                                    console.log("Elrond2", {
-                                        name,
-                                        // metadataUrl,
-                                        // attrs,
-                                    });
-                                    break;
-                                }
-                            }
-
-                            const eventObj: IEvent = {
-                    actionId: (parseFloat(action_id) + 512).toString() ,
-
-                            const [doc] = await Promise.all([
-                                (async () => {
-                                    return await createEventRepo(em.fork()).createEvent(eventObj);
-                                })(),
-                                (async () => {
-                                    return await createEventRepo(em.fork()).saveWallet(eventObj.senderAddress, eventObj.targetAddress!)
-                                  })(),
-                            ])
-                            if (doc) {
-                                console.log("------TELEGRAM FUNCTION-----")
-                                console.log("doc: ", doc);
-
-                                setTimeout(() => clientAppSocket.emit("incomingEvent", doc), Math.random() * 3 * 1000)
-
-                                setTimeout(async () => {
-                                    const updated = await createEventRepo(em.fork()).errorEvent(fromHash);
-                                    clientAppSocket.emit("updateEvent", updated);
-                                    if (updated) {
-                                        try {
-                                            console.log("before telegram operation")
-                                            await axios.get(`https://api.telegram.org/bot5524815525:AAEEoaLVnMigELR-dl01hgHzwSkbonM1Cxc/sendMessage?chat_id=-553970779&text=${getTelegramTemplate(doc)}&parse_mode=HTML`);
-                                        } catch (err) {
-                                            console.log(err)
-                                        }
-                                    }
-                                }, 1000 * 60 * 20);
->>>>>>> 964f3f5f30dea5d1ded061483c11fdb05279d7f9
                             }
                         }
                     }, 1000 * 60 * 20);
