@@ -78,7 +78,7 @@ export const scrap = async (em: EntityManager<IDatabaseDriver<Connection>>,chain
           from: chain,
           to: String(args["chainNonce"]),
           //@ts-ignore
-          sender: log.trx.from || undefined,
+          sender: log.trx.from || "0x",
           target: String(args["to"]),
           hash: log.transactionHash,
           txFees: String(args["txFees"]),
