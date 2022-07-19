@@ -47,7 +47,7 @@ export const scrap = async (em: EntityManager<IDatabaseDriver<Connection>>,chain
     if (logs.length > 0)
       console.log(`found ${logs.length} in ${chainConfig.name}::from block ${blocks.lastBlock}`);
 
-    const trxs = await Promise.all(logs.map(async (log) => web3.eth.getTransaction(log.transactionHash)))
+    const trxs = logs.map(async (log) => web3.eth.getTransaction(log.transactionHash))
 
     logs = logs.map((log, i) => ({
       ...log,
@@ -78,7 +78,7 @@ export const scrap = async (em: EntityManager<IDatabaseDriver<Connection>>,chain
           from: chain,
           to: String(args["chainNonce"]),
           //@ts-ignore
-          sender: log.trx.from,
+          sender: log.trx.from || undefined,
           target: String(args["to"]),
           hash: log.transactionHash,
           txFees: String(args["txFees"]),
