@@ -6,17 +6,17 @@ import { eventHandler } from "../handlers";
 import cron from 'node-cron'
 import Web3 from "web3";
 import { getChain } from "../config";
+import axios from "axios";
 
-export const scrap = async (em: EntityManager<IDatabaseDriver<Connection>>,chain: string) => {
+export const scrap = async (em: EntityManager<IDatabaseDriver<Connection>>, chain: string) => {
   const chainConfig = getChain(chain)!
 
   if (!chainConfig) return
 
   const provider = new JsonRpcProvider(chainConfig.node);
-  
   console.log(chainConfig);
 
-  const web3 = new Web3(new Web3.providers.HttpProvider(chainConfig.node, {timeout: 5000}));
+  const web3 = new Web3(new Web3.providers.HttpProvider(chainConfig.node, { timeout: 5000 }));
 
   const _contract = Minter__factory.connect(chainConfig.contract, provider);
   console.log('SCRAPING ', chainConfig.name);
@@ -40,7 +40,7 @@ export const scrap = async (em: EntityManager<IDatabaseDriver<Connection>>,chain
 
     let logs = await web3.eth.getPastLogs({
       fromBlock,
-      toBlock : 'latest',
+      toBlock: 'latest',
       address: chainConfig.contract,
     });
 
@@ -60,10 +60,17 @@ export const scrap = async (em: EntityManager<IDatabaseDriver<Connection>>,chain
         console.log(parsed);
         const args = parsed.args;
         let nftUrl = ''
+        let collectionName = ''
 
         if (parsed.name.includes("Unfreeze")) {
-          nftUrl = String(args["baseURI"]).split("{")[0] + String(args["tokenId"]);
-
+          try {
+            nftUrl = String(args["baseURI"]).split("{")[0] + String(args["tokenId"]);
+            const wrapedData = await axios.get(`https://nft.xp.network/w/${args["tokenId"].toString()}`)
+            console.log(wrapedData.data.wrapped.contract)
+            collectionName = wrapedData.data.name
+          } catch (err) {
+            console.log(err)
+          }
         } else {
           if (args["tokenData"].includes('0x{id}')) {
             nftUrl = String(args["tokenData"]).replace('0x{id}', String(args["id"]));
@@ -78,7 +85,7 @@ export const scrap = async (em: EntityManager<IDatabaseDriver<Connection>>,chain
           from: chain,
           to: String(args["chainNonce"]),
           //@ts-ignore
-          sender: log.trx.from || "0x",
+          sender: log.trx.from || (await log.trx).from ||  "0x",
           target: String(args["to"]),
           hash: log.transactionHash,
           txFees: String(args["txFees"]),
@@ -87,10 +94,14 @@ export const scrap = async (em: EntityManager<IDatabaseDriver<Connection>>,chain
             : String(args["id"]),
           type: parsed.name.includes("Unfreeze") ? "Unfreeze" : "Transfer" as "Unfreeze" | "Transfer",
           uri: nftUrl,
+          collectionName: parsed.name.includes("Unfreeze")
+            ? collectionName
+            : String(args["mintWith"]),
           contract: parsed.name.includes("Unfreeze")
             ? String(args["burner"])
-            : String(args["mintWith"]),
+            : String(args["contractAddr"]),
         };
+        console.log("eventData", eventData)
         eventData && eventHandler(em.fork())(eventData)
       } catch (_) {
         console.log(_);
